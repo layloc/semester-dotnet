@@ -1,0 +1,6 @@
+@SEM.API_HostAddress = http://localhost:5140
+
+GET {{SEM.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

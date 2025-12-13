@@ -1,0 +1,20 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  sem.api:
+    build:
+      context: "D:\\thirdcourse\\SEM\\SEM"
+      dockerfile: "./Dockerfile"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net9.0/SEM.API.dll"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "sem:dev"
+    ports: []
+    volumes:
+    - "D:\\thirdcourse\\SEM\\SEM\\SEM.API:/app:rw"
+    - "D:\\thirdcourse\\SEM\\SEM:/src:rw"
+    - "C:\\Users\\layl\\.nuget\\packages:/root/.nuget/packages"
+    working_dir: "/app"

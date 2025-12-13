@@ -1,0 +1,32 @@
+﻿services:
+  sem.api:
+    image: sem
+    container_name: sem.api
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "5140:5140"
+      - "5141:5141"
+      - "7279:7279"
+
+  sem.db:
+    image: postgres:17
+    container_name: sem.db
+    environment:
+      - POSTGRES_DB=apidb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - D:\DockerData\DockerDesktopWSL\dbcompose:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+      
+  sem.cache:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    
