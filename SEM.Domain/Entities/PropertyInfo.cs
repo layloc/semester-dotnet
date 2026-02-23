@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-
-namespace SEM.Entities;
+namespace SEM.Domain.Entities;
 
 public class PropertyInfo
 {

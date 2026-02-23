@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using SEM.Abstractions;
+using SEM.API.Config;
 using SEM.Domain.Abstractions;
 using SEM.Domain.Services;
 using SEM.Infrastructure.Repositories;
 using SEM.Services;
-using WebApplication1.Endpoints;
-using WebApplication1.Middlewares;
+using SEM.API.Endpoints;
+using SEM.API.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,7 @@ builder.Services.AddScoped<SessionAuthMiddleware>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
+
 builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo("D:\\keys"));
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Database"))
@@ -42,6 +44,7 @@ builder.Services.AddAuthentication("session")
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.None;
         options.Cookie.Name = "sem";
+        options.ExpireTimeSpan = TimeSpan.FromHours(12);
     });
 builder.Services.AddAuthorization();
 builder.Services.AddTransient<IUserService, UserService>();
@@ -50,12 +53,11 @@ builder.Services.AddTransient<IJsonToModelParser, JsonToModelParser>();
 builder.Services.AddTransient<IModelToCodeParser, ModelToCodeParser>();
 builder.Services.AddTransient<IModelService, ModelService>();
 builder.Services.AddTransient<IModelRepository, ModelRepository>();
-
-
+builder.Services.AddTransient<IApiGenerator, ApiGenerator>();
+builder.Services.ConfigureValidators();
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
-
-
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -66,6 +68,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapAuthEndpoints();
 app.MapConverterEndpoints();
+app.MapFallbackToFile("/login", "login.html");
+app.MapFallbackToFile("/converter", "converter.html").RequireAuthorization();
+app.MapFallbackToFile("/my-models", "my-models.html").RequireAuthorization();
 
 if (app.Environment.IsDevelopment())
 {

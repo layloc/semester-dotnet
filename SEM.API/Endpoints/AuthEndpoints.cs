@@ -1,25 +1,30 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http.HttpResults;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using SEM.Domain.Abstractions;
 using SEM.Domain.DTOs;
-using SEM.Services;
 
-namespace WebApplication1.Endpoints;
+namespace SEM.API.Endpoints;
 
 public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this WebApplication webApplication)
     {
         var group = webApplication.MapGroup("/api/auth").WithOpenApi();
-        group.MapPost("/register", async ([FromServices] IUserService userService, UserAuthRequest dto) =>
+        group.MapPost("/register", async ([FromServices] IUserService userService,
+            IValidator<UserAuthRequest> validator,
+            UserAuthRequest dto) =>
         {
+            var result = await validator.ValidateAsync(dto);
+            if (!result.IsValid)
+            {
+                return Results.ValidationProblem(result.ToDictionary());
+            }
             await userService.RegisterAsync(dto);
             return Results.Created();
         });
-        group.MapPost("/login", async ([FromServices] IUserService userService, HttpContext httpContext, UserAuthRequest request) =>
+        group.MapPost("/login", async ([FromServices] IUserService userService, 
+            HttpContext httpContext,
+            UserAuthRequest request) =>
         {
             var result = await userService.LoginAsync(request, httpContext);
             return !result ? Results.Unauthorized() : Results.Ok();

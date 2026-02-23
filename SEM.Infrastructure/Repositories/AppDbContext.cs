@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using SEM.Entities;
+using SEM.Domain.Entities;
 
 namespace SEM.Infrastructure.Repositories;
 

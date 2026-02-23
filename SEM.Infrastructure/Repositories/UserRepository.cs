@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SEM.Domain.Abstractions;
-using SEM.Entities;
+using SEM.Domain.Entities;
 
 namespace SEM.Infrastructure.Repositories;
 

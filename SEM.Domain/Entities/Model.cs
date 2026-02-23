@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SEM.Entities;
+namespace SEM.Domain.Entities;
 
 public class Model
 {

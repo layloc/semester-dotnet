@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SEM.Entities;
+namespace SEM.Domain.Entities;
 
 public class User
 {

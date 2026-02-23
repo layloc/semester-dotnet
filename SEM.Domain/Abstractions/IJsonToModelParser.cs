@@ -1,5 +1,5 @@
 using System.Text.Json.Nodes;
-using SEM.Entities;
+using SEM.Domain.Entities;
 
 namespace SEM.Abstractions;
 

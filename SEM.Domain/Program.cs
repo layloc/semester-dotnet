@@ -1,3 +1,4 @@
+using SEM.Domain.Services;
 using SEM.Services;
 
 class Program

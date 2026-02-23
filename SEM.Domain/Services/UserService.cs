@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using SEM.Domain.DTOs;
 using SEM.Domain.Abstractions;
-using SEM.Entities;
+using SEM.Domain.Entities;
 
 namespace SEM.Services;
 

@@ -1,11 +1,10 @@
 using System.ComponentModel.DataAnnotations;
-using SEM.Entities;
+using SEM.Domain.Entities;
 
 namespace SEM.Domain.DTOs;
 
 public class ModelDto
 {
-    [Required]
     public Guid Id { get; set; }
     [Required]
     public string Name { get; set; }

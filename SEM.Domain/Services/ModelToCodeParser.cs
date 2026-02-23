@@ -1,6 +1,6 @@
 using System.Text;
 using SEM.Abstractions;
-using SEM.Entities;
+using SEM.Domain.Entities;
 
 namespace SEM.Services;
 
@@ -14,8 +14,8 @@ public class ModelToCodeParser : IModelToCodeParser
         {
             var propToCode = new StringBuilder();
             propToCode.Append(property.IsRequired
-                ? $"\tpublic required {property.Type} {property.Name} {{ get; "
-                : $"\tpublic {property.Type} {property.Name} {{ get; ").Append(property.IsReadonly ? "}\n" : "set; }\n");
+                ? $"    public required {property.Type} {property.Name} {{ get; "
+                : $"    public {property.Type} {property.Name} {{ get; ").Append(property.IsReadonly ? "}\n" : "set; }\n");
             output.Append(propToCode.ToString());
         }
         output.AppendLine("}");

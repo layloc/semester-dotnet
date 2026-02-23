@@ -1,4 +1,4 @@
-using SEM.Entities;
+using SEM.Domain.Entities;
 
 namespace SEM.Domain.Abstractions;
 

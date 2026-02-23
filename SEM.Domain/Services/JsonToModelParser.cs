@@ -1,8 +1,8 @@
 using System.Text.Json.Nodes;
 using SEM.Abstractions;
-using SEM.Entities;
+using SEM.Domain.Entities;
 
-namespace SEM.Services;
+namespace SEM.Domain.Services;
 
 public class JsonToModelParser : IJsonToModelParser
 {

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace WebApplication1.Middlewares;
+namespace SEM.API.Middlewares;
 
 public class SessionAuthMiddleware : IMiddleware
 {

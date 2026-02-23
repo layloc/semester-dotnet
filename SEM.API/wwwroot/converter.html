@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Generator</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-strong: #0ea5e9;
+            --danger: #f43f5e;
+            --success: #22c55e;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.08), transparent 40%),
+            radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.1), transparent 35%),
+            var(--bg);
+            color: var(--text);
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
+        .card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        h1 {
+            margin: 0 0 20px;
+            font-size: 1.75rem;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            margin: 0 0 16px;
+            font-size: 1.25rem;
+            letter-spacing: -0.01em;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            font-size: 0.98rem;
+            font-family: inherit;
+            transition: border-color 150ms ease, box-shadow 150ms ease;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+        }
+
+        textarea {
+            min-height: 300px;
+            resize: vertical;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        button {
+            border: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+            color: #0b1221;
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.25);
+            transition: transform 120ms ease, box-shadow 150ms ease, filter 120ms ease;
+            font-size: 0.95rem;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(14, 165, 233, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+            filter: brightness(0.96);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .output {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 10px;
+            padding: 16px;
+            min-height: 200px;
+            max-height: 600px;
+            overflow: auto;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .output.empty {
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--muted);
+            font-size: 0.95rem;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+        }
+
+        .status.success {
+            border-color: rgba(34, 197, 94, 0.4);
+            color: var(--success);
+        }
+
+        .status.error {
+            border-color: rgba(244, 63, 94, 0.4);
+            color: var(--danger);
+        }
+
+        .output-section {
+            margin-top: 16px;
+        }
+
+        .output-section h3 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+            color: var(--muted);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .tab {
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: color 150ms ease, border-color 150ms ease;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .property-row {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 1fr auto;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 8px;
+        }
+
+        .property-row input[type="text"],
+        .property-row select {
+            padding: 8px 10px;
+            font-size: 0.9rem;
+        }
+
+        .property-row .checkbox-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .property-row .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: normal;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .property-row .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .property-row .remove-btn {
+            padding: 6px 12px;
+            background: rgba(244, 63, 94, 0.2);
+            color: var(--danger);
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            font-size: 0.85rem;
+        }
+
+        .property-row .remove-btn:hover {
+            background: rgba(244, 63, 94, 0.3);
+        }
+
+        .add-property-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(148, 163, 184, 0.18);
+            color: var(--text);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .add-property-btn:hover {
+            background: rgba(148, 163, 184, 0.25);
+        }
+
+        .type-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .type-input-group select {
+            flex: 1;
+        }
+
+        .type-input-group input[type="text"] {
+            flex: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .property-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .property-row .checkbox-group {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 style="margin: 0;">JSON to Model Converter</h1>
+            <button id="btn-logout"
+                    type="button"
+                    style="padding: 8px 14px; background: rgba(244, 63, 94, 0.2); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.4);">
+                Logout
+            </button>
+        </div>
+        <div class="tabs">
+            <button class="tab active" data-tab="json">JSON Input</button>
+            <button class="tab" data-tab="constructor">Visual Constructor</button>
+        </div>
+
+        <div class="tab-content active" id="tab-json">
+            <div class="form-group">
+                <label>Load from URL</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="url" id="url-input" placeholder="https://api.example.com/data" style="flex: 1;" />
+                    <button type="button" id="btn-load-url" style="padding: 8px 16px;">Load JSON</button>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--muted); margin-top: 4px;">
+                    Enter a URL to fetch JSON. 
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="json-input">JSON Input</label>
+                <textarea id="json-input" placeholder='{"name": "John", "age": 30, "email": "john@example.com"}'></textarea>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-constructor">
+            <div class="form-group">
+                <label>Model Properties</label>
+                <div id="properties-container">
+                    <!-- Properties will be added here dynamically -->
+                </div>
+                <button type="button" class="add-property-btn" id="add-property-btn">+ Add Property</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="model-name">Model Name</label>
+            <input id="model-name" type="text" placeholder="User" required />
+        </div>
+
+        <div class="form-group">
+            <label>Saved Models</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <select id="saved-models" style="flex: 1;">
+                    <option value="">-- Select a saved model --</option>
+                </select>
+                <button id="btn-load" type="button" style="padding: 8px 16px;">Load</button>
+                <button id="btn-refresh-models" type="button" style="padding: 8px 16px;">Refresh</button>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button id="btn-my-models" type="button" style="padding: 8px 16px; width: 100%; background: rgba(148, 163, 184, 0.18); color: var(--text); border: 1px solid rgba(148, 163, 184, 0.35);">View All My Models</button>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--muted); margin-top: 8px;">
+                Current Model ID: <span id="current-model-id" style="font-family: monospace;">None</span>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button id="btn-generate" data-action="generate">Generate Model</button>
+            <button id="btn-save" data-action="save">Save Model</button>
+            <button id="btn-update" data-action="update">Update Model</button>
+            <button id="btn-generate-api" data-action="generate-api">Generate CRUD & DbContext</button>
+        </div>
+
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+        <h2>Output</h2>
+        <div class="output empty" id="output">Generated code will appear here...</div>
+    </div>
+</div>
+
+<script>
+    const jsonInput = document.getElementById("json-input");
+    const modelNameInput = document.getElementById("model-name");
+    const savedModelsSelect = document.getElementById("saved-models");
+    const currentModelIdSpan = document.getElementById("current-model-id");
+    const output = document.getElementById("output");
+    const status = document.getElementById("status");
+    const buttons = document.querySelectorAll("button[data-action]");
+    const propertiesContainer = document.getElementById("properties-container");
+    const addPropertyBtn = document.getElementById("add-property-btn");
+
+    let currentModelId = null;
+    let propertyCounter = 0;
+    const commonTypes = ["string", "int", "long", "float", "double", "decimal", "bool", "DateTime", "Guid", "object"];
+
+    document.querySelectorAll(".tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+            const targetTab = tab.dataset.tab;
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+            tab.classList.add("active");
+            document.getElementById(`tab-${targetTab}`).classList.add("active");
+        });
+    });
+
+    function addPropertyRow(property = null) {
+        const id = `prop-${propertyCounter++}`;
+        const row = document.createElement("div");
+        row.className = "property-row";
+        row.id = id;
+
+        const typeSelectId = `${id}-type-select`;
+        const typeCustomId = `${id}-type-custom`;
+        const typeModeId = `${id}-type-mode`;
+
+        row.innerHTML = `
+                <input type="text" placeholder="Property Name" class="prop-name" value="${property?.name || ''}" />
+                <div class="type-input-group">
+                    <select class="prop-type-select" id="${typeSelectId}">
+                        <option value="">-- Select Type --</option>
+                        ${commonTypes.map(t => `<option value="${t}" ${property?.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+                        <option value="__custom__">Custom Type...</option>
+                    </select>
+                    <input type="text" placeholder="Custom Type" class="prop-type-custom" id="${typeCustomId}" 
+                           value="${property && !commonTypes.includes(property.type) ? property.type : ''}" 
+                           style="display: ${property && !commonTypes.includes(property.type) ? 'block' : 'none'};" />
+                </div>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" class="prop-readonly" ${property?.isReadonly ? 'checked' : ''} />
+                        Readonly
+                    </label>
+                </div>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" class="prop-required" ${property?.isRequired ? 'checked' : ''} />
+                        Required
+                    </label>
+                </div>
+                <button type="button" class="remove-btn" onclick="removeProperty('${id}')">Remove</button>
+            `;
+
+        propertiesContainer.appendChild(row);
+
+        const typeSelect = document.getElementById(typeSelectId);
+        const typeCustom = document.getElementById(typeCustomId);
+
+        typeSelect.addEventListener("change", () => {
+            if (typeSelect.value === "__custom__") {
+                typeCustom.style.display = "block";
+                typeCustom.focus();
+            } else {
+                typeCustom.style.display = "none";
+                typeCustom.value = "";
+            }
+        });
+
+        if (property && !commonTypes.includes(property.type)) {
+            typeSelect.value = "__custom__";
+            typeCustom.style.display = "block";
+        }
+    }
+
+    function removeProperty(id) {
+        const row = document.getElementById(id);
+        if (row) {
+            row.remove();
+        }
+    }
+
+    function getPropertiesFromConstructor() {
+        const rows = propertiesContainer.querySelectorAll(".property-row");
+        const properties = [];
+
+        rows.forEach(row => {
+            const name = row.querySelector(".prop-name").value.trim();
+            if (!name) return;
+
+            const typeSelect = row.querySelector(".prop-type-select");
+            const typeCustom = row.querySelector(".prop-type-custom");
+            let type = "";
+
+            if (typeSelect.value === "__custom__") {
+                type = typeCustom.value.trim();
+            } else if (typeSelect.value) {
+                type = typeSelect.value;
+            }
+
+            if (!type) return;
+
+            const isReadonly = row.querySelector(".prop-readonly").checked;
+            const isRequired = row.querySelector(".prop-required").checked;
+
+            properties.push({
+                name: name,
+                type: type,
+                isReadonly: isReadonly,
+                isRequired: isRequired
+            });
+        });
+
+        return properties;
+    }
+
+    function constructorToJson() {
+        const properties = getPropertiesFromConstructor();
+        const json = {};
+
+        properties.forEach(prop => {
+            const type = prop.type.toLowerCase();
+            if (type.includes("int") || type.includes("long")) {
+                json[prop.name] = 0;
+            } else if (type.includes("float") || type.includes("double") || type.includes("decimal")) {
+                json[prop.name] = 0.0;
+            } else if (type.includes("bool")) {
+                json[prop.name] = false;
+            } else if (type.includes("list") || type.includes("array")) {
+                json[prop.name] = [];
+            } else if (type === "object") {
+                json[prop.name] = {};
+            } else if (type === "datetime") {
+                json[prop.name] = new Date().toISOString();
+            } else if (type === "guid") {
+                json[prop.name] = "00000000-0000-0000-0000-000000000000";
+            } else {
+                json[prop.name] = "";
+            }
+        });
+
+        return json;
+    }
+
+    function loadModelToConstructor(model) {
+        propertiesContainer.innerHTML = "";
+        propertyCounter = 0;
+
+        if (model.properties && Array.isArray(model.properties)) {
+            model.properties.forEach(prop => {
+                addPropertyRow({
+                    name: prop.name,
+                    type: prop.type,
+                    isReadonly: prop.isReadonly || false,
+                    isRequired: prop.isRequired || false
+                });
+            });
+        }
+    }
+
+    addPropertyBtn.addEventListener("click", () => {
+        addPropertyRow();
+    });
+
+    function setStatus(message, type = "") {
+        status.textContent = message ?? "";
+        status.className = `status${type ? " " + type : ""}`;
+    }
+
+    function setOutput(text, isEmpty = false) {
+        output.textContent = text || "";
+        output.className = `output${isEmpty ? " empty" : ""}`;
+    }
+
+    function setLoading(loading) {
+        buttons.forEach(btn => {
+            btn.disabled = loading;
+        });
+        if (loading) {
+            setStatus("Processing...");
+        }
+    }
+
+    async function makeRequest(endpoint, method, body, queryParams = {}) {
+        const queryString = new URLSearchParams(queryParams).toString();
+        const url = `/api/convert/${endpoint}${queryString ? "?" + queryString : ""}`;
+
+        const options = {
+            method: method,
+            credentials: "include"
+        };
+
+        if (body) {
+            options.headers = {
+                "Content-Type": "application/json"
+            };
+            options.body = JSON.stringify(body);
+        }
+
+        const response = await fetch(url, options);
+
+        if (response.ok) {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("text/plain")) {
+                const text = await response.text();
+                return { ok: true, data: text, isText: true };
+            } else {
+                const data = await response.json().catch(() => ({}));
+                return { ok: true, data: data, isText: false };
+            }
+        }
+
+        let error = "Request failed.";
+        try {
+            const data = await response.json();
+            if (data?.errors) {
+                error = Object.values(data.errors).flat().join(" ");
+            } else if (data?.title) {
+                error = data.title;
+            } else if (typeof data === "string") {
+                error = data;
+            }
+        } catch (_) {
+            const text = await response.text().catch(() => "");
+            if (text) error = text;
+        }
+        return { ok: false, message: error };
+    }
+
+    function parseJson() {
+        const activeTab = document.querySelector(".tab.active").dataset.tab;
+
+        if (activeTab === "constructor") {
+            const properties = getPropertiesFromConstructor();
+            if (properties.length === 0) {
+                setStatus("Please add at least one property.", "error");
+                return null;
+            }
+            return constructorToJson();
+        } else {
+            const jsonText = jsonInput.value.trim();
+            if (!jsonText) {
+                setStatus("JSON input is required.", "error");
+                return null;
+            }
+            try {
+                return JSON.parse(jsonText);
+            } catch (e) {
+                setStatus(`Invalid JSON: ${e.message}`, "error");
+                return null;
+            }
+        }
+    }
+
+    function getModelStructureFromConstructor() {
+        const properties = getPropertiesFromConstructor();
+        if (properties.length === 0) {
+            return null;
+        }
+        return {
+            name: modelNameInput.value.trim(),
+            properties: properties.map(p => ({
+                name: p.name,
+                type: p.type,
+                isReadonly: p.isReadonly,
+                isRequired: p.isRequired
+            }))
+        };
+    }
+
+    function updateCurrentModelId(id) {
+        currentModelId = id;
+        currentModelIdSpan.textContent = id || "None";
+        currentModelIdSpan.style.color = id ? "var(--success)" : "var(--muted)";
+    }
+
+    function modelToSampleJson(model) {
+        const obj = {};
+        if (model.properties && Array.isArray(model.properties)) {
+            model.properties.forEach(prop => {
+                const type = prop.type?.toLowerCase() || "string";
+                if (type.includes("int") || type.includes("long")) {
+                    obj[prop.name] = 0;
+                } else if (type.includes("float") || type.includes("double") || type.includes("decimal")) {
+                    obj[prop.name] = 0.0;
+                } else if (type.includes("bool")) {
+                    obj[prop.name] = false;
+                } else if (type.includes("list")) {
+                    obj[prop.name] = [];
+                } else if (type === "object") {
+                    obj[prop.name] = {};
+                } else {
+                    obj[prop.name] = "";
+                }
+            });
+        }
+        return obj;
+    }
+
+    async function loadSavedModels() {
+        try {
+            const result = await makeRequest("models", "GET");
+            if (result.ok && Array.isArray(result.data)) {
+                savedModelsSelect.innerHTML = '<option value="">-- Select a saved model --</option>';
+                result.data.forEach(model => {
+                    if (model) {
+                        const option = document.createElement("option");
+                        option.value = model.id;
+                        option.textContent = `${model.name} (${model.id})`;
+                        savedModelsSelect.appendChild(option);
+                    }
+                });
+                setStatus(`Loaded ${result.data.length} saved model(s).`, "success");
+            } else {
+                setStatus("Failed to load models.", "error");
+            }
+        } catch (error) {
+            setStatus(`Error loading models: ${error.message}`, "error");
+        }
+    }
+
+    async function loadModel(id) {
+        try {
+            setLoading(true);
+            const result = await makeRequest(`models/${id}`, "GET");
+            if (result.ok && result.data) {
+                const model = result.data;
+                modelNameInput.value = model.name || "";
+                updateCurrentModelId(model.id);
+
+                loadModelToConstructor(model);
+
+                const sampleJson = modelToSampleJson(model);
+                jsonInput.value = JSON.stringify(sampleJson, null, 2);
+
+                document.querySelector('.tab[data-tab="constructor"]').click();
+
+                setStatus(`Model "${model.name}" loaded.`, "success");
+            } else {
+                setStatus("Model not found.", "error");
+            }
+        } catch (error) {
+            setStatus(`Error loading model: ${error.message}`, "error");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    document.getElementById("btn-load").addEventListener("click", () => {
+        const selectedId = savedModelsSelect.value;
+        if (selectedId) {
+            loadModel(selectedId);
+        } else {
+            setStatus("Please select a model to load.", "error");
+        }
+    });
+
+    document.getElementById("btn-refresh-models").addEventListener("click", () => {
+        loadSavedModels();
+    });
+
+    document.getElementById("btn-my-models").addEventListener("click", () => {
+        window.location.href = "/my-models";
+    });
+
+    async function loadJsonFromUrl() {
+        const urlInput = document.getElementById("url-input");
+        const url = urlInput.value.trim();
+
+        if (!url) {
+            setStatus("Please enter a URL.", "error");
+            return;
+        }
+
+        try {
+            new URL(url);
+        } catch {
+            setStatus("Invalid URL format.", "error");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch(url, {
+                method: "GET",
+                credentials: "omit" 
+            });
+
+            if (!response.ok) {
+                setStatus(`Failed to fetch: ${response.status} ${response.statusText}`, "error");
+                setLoading(false);
+                return;
+            }
+
+            const contentType = response.headers.get("content-type") || "";
+            if (!contentType.includes("application/json") && !contentType.includes("text/json")) {
+            }
+
+            const jsonText = await response.text();
+
+            try {
+                const parsed = JSON.parse(jsonText);
+                jsonInput.value = JSON.stringify(parsed, null, 2);
+                setStatus(`JSON loaded successfully from ${url}`, "success");
+            } catch (e) {
+                setStatus(`Response is not valid JSON: ${e.message}`, "error");
+            }
+        } catch (error) {
+            setStatus(`Error fetching URL: ${error.message}`, "error");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    document.getElementById("btn-load-url").addEventListener("click", () => {
+        loadJsonFromUrl();
+    });
+    
+
+    document.getElementById("url-input").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            loadJsonFromUrl();
+        }
+    });
+    
+    loadSavedModels();
+    
+    window.addEventListener('DOMContentLoaded', () => {
+        const loadModelId = sessionStorage.getItem('loadModelId');
+        if (loadModelId) {
+            sessionStorage.removeItem('loadModelId');
+            loadModel(loadModelId);
+        }
+    });
+
+    buttons.forEach(button => {
+        button.addEventListener("click", async () => {
+            const action = button.dataset.action;
+            const json = parseJson();
+            if (!json) return;
+
+            const name = modelNameInput.value.trim();
+            if (!name) {
+                setStatus("Model name is required.", "error");
+                return;
+            }
+
+            setLoading(true);
+            setOutput("", true);
+
+            try {
+                const activeTab = document.querySelector(".tab.active").dataset.tab;
+                const useStructure = activeTab === "constructor";
+
+                let result;
+                switch (action) {
+                    case "generate":
+                        if (useStructure) {
+                            const structure = getModelStructureFromConstructor();
+                            if (!structure) {
+                                setStatus("Please add at least one property.", "error");
+                                setLoading(false);
+                                return;
+                            }
+                            result = await makeRequest("to-code-from-structure", "POST", structure);
+                        } else {
+                            result = await makeRequest("to-code", "POST", json, { name });
+                        }
+                        if (result.ok) {
+                            setOutput(result.data, false);
+                            setStatus("Model code generated successfully.", "success");
+                        } else {
+                            setStatus(result.message, "error");
+                        }
+                        break;
+
+                    case "save":
+                        if (useStructure) {
+                            const structure = getModelStructureFromConstructor();
+                            if (!structure) {
+                                setStatus("Please add at least one property.", "error");
+                                setLoading(false);
+                                return;
+                            }
+                            result = await makeRequest("create-from-structure", "PUT", structure);
+                        } else {
+                            result = await makeRequest("create", "PUT", json, { name });
+                        }
+                        if (result.ok) {
+                            if (result.data && result.data.id) {
+                                updateCurrentModelId(result.data.id);
+                                await loadSavedModels();
+                                setStatus(`Model saved successfully. ID: ${result.data.id}`, "success");
+                            } else {
+                                setStatus("Model saved successfully.", "success");
+                            }
+                        } else {
+                            setStatus(result.message, "error");
+                        }
+                        break;
+
+                    case "update":
+                        if (!currentModelId) {
+                            setStatus("No model selected. Please load a model first or save a new one.", "error");
+                            setLoading(false);
+                            return;
+                        }
+                        if (useStructure) {
+                            const structure = getModelStructureFromConstructor();
+                            if (!structure) {
+                                setStatus("Please add at least one property.", "error");
+                                setLoading(false);
+                                return;
+                            }
+                            structure.id = currentModelId;
+                            result = await makeRequest("save-from-structure", "PUT", structure);
+                        } else {
+                            result = await makeRequest("save", "PUT", json, { id: currentModelId, name });
+                        }
+                        if (result.ok) {
+                            setStatus(result.data?.message || result.data || "Model updated successfully.", "success");
+                        } else {
+                            setStatus(result.message, "error");
+                        }
+                        break;
+
+                    case "generate-api":
+                        if (useStructure) {
+                            const structure = getModelStructureFromConstructor();
+                            if (!structure) {
+                                setStatus("Please add at least one property.", "error");
+                                setLoading(false);
+                                return;
+                            }
+                            const [crudResult, dbContextResult] = await Promise.all([
+                                makeRequest("generate-api-from-structure", "POST", structure, { typeOfGen: "api" }),
+                                makeRequest("generate-api-from-structure", "POST", structure, { typeOfGen: "dbcontext" })
+                            ]);
+
+                            let combinedOutput = "";
+                            if (crudResult.ok && dbContextResult.ok) {
+                                combinedOutput = "// === CRUD Endpoints ===\n\n" + crudResult.data + "\n\n// === DbContext ===\n\n" + dbContextResult.data;
+                                setOutput(combinedOutput, false);
+                                setStatus("CRUD endpoints and DbContext generated successfully.", "success");
+                            } else {
+                                const errors = [];
+                                if (!crudResult.ok) errors.push(`CRUD: ${crudResult.message}`);
+                                if (!dbContextResult.ok) errors.push(`DbContext: ${dbContextResult.message}`);
+                                setStatus(errors.join(" | "), "error");
+                            }
+                        } else {
+                            const [crudResult, dbContextResult] = await Promise.all([
+                                makeRequest("generate-api", "POST", json, { name, typeOfGen: "api" }),
+                                makeRequest("generate-api", "POST", json, { name, typeOfGen: "dbcontext" })
+                            ]);
+
+                            let combinedOutput = "";
+                            if (crudResult.ok && dbContextResult.ok) {
+                                combinedOutput = "// === CRUD Endpoints ===\n\n" + crudResult.data + "\n\n// === DbContext ===\n\n" + dbContextResult.data;
+                                setOutput(combinedOutput, false);
+                                setStatus("CRUD endpoints and DbContext generated successfully.", "success");
+                            } else {
+                                const errors = [];
+                                if (!crudResult.ok) errors.push(`CRUD: ${crudResult.message}`);
+                                if (!dbContextResult.ok) errors.push(`DbContext: ${dbContextResult.message}`);
+                                setStatus(errors.join(" | "), "error");
+                            }
+                        }
+                        break;
+                }
+            } catch (error) {
+                setStatus(`Error: ${error.message}`, "error");
+            } finally {
+                setLoading(false);
+            }
+        });
+    });
+    document.getElementById("btn-logout").addEventListener("click", async () => {
+        try {
+            const response = await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "include"
+            });
+
+            if (response.ok) {
+                window.location.href = "/login";
+            } else {
+                setStatus("Logout failed.", "error");
+            }
+        } catch (e) {
+            setStatus("Logout error.", "error");
+        }
+    });
+</script>
+</body>
+</html>
+

@@ -1,13 +1,15 @@
 using SEM.Domain.DTOs;
-using SEM.Entities;
+using SEM.Domain.Entities;
 
 namespace SEM.Domain.Abstractions;
 
 public interface IModelService
 {
-    Task UpdateModelAsync(ModelDto? model);
-    Task DeleteModelAsync(Guid modelId);
+    Task UpdateModelAsync(Model? model, Guid userId);
+    Task DeleteModelAsync(Guid modelId, Guid userId);
     Task<Model?> GetModelAsync(Guid model);
     Task<IEnumerable<Model>> GetModelsAsync();
     Task CreateModelAsync(Model? model, Guid userId);
+    Task SaveModelAsync(ModelDto dto, Guid userId);
+    
 }

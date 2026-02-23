@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Models - SEM</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-strong: #0ea5e9;
+            --danger: #f43f5e;
+            --success: #22c55e;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.08), transparent 40%),
+            radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.1), transparent 35%),
+            var(--bg);
+            color: var(--text);
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+            letter-spacing: -0.02em;
+        }
+
+        .card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
+        button {
+            border: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+            color: #0b1221;
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.25);
+            transition: transform 120ms ease, box-shadow 150ms ease, filter 120ms ease;
+            font-size: 0.95rem;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(14, 165, 233, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+            filter: brightness(0.96);
+        }
+
+        button.secondary {
+            background: rgba(148, 163, 184, 0.18);
+            color: var(--text);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow: none;
+        }
+
+        button.secondary:hover {
+            background: rgba(148, 163, 184, 0.25);
+        }
+
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .model-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 150ms ease, transform 120ms ease;
+        }
+
+        .model-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .model-card h3 {
+            margin: 0 0 8px;
+            font-size: 1.1rem;
+            color: var(--text);
+        }
+
+        .model-card .model-id {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 12px;
+            word-break: break-all;
+        }
+
+        .model-card .properties-count {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .model-card .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .model-card .actions button {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .status {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--muted);
+            font-size: 0.95rem;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+        }
+
+        .status.success {
+            border-color: rgba(34, 197, 94, 0.4);
+            color: var(--success);
+        }
+
+        .status.error {
+            border-color: rgba(244, 63, 94, 0.4);
+            color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .empty-state h2 {
+            margin: 0 0 12px;
+            font-size: 1.5rem;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>My Models</h1>
+        <div style="display: flex; gap: 12px;">
+            <button class="secondary" onclick="window.location.href='/converter'">Back to Converter</button>
+            <button onclick="loadModels()">Refresh</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div id="models-container">
+            <div class="empty-state">
+                <h2>Loading models...</h2>
+            </div>
+        </div>
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+    </div>
+</div>
+
+<script>
+    function setStatus(message, type = "") {
+        const status = document.getElementById("status");
+        status.textContent = message ?? "";
+        status.className = `status${type ? " " + type : ""}`;
+    }
+
+    async function makeRequest(endpoint, method, body, queryParams = {}) {
+        const queryString = new URLSearchParams(queryParams).toString();
+        const url = `/api/convert/${endpoint}${queryString ? "?" + queryString : ""}`;
+
+        const options = {
+            method: method,
+            credentials: "include"
+        };
+
+        if (body) {
+            options.headers = {
+                "Content-Type": "application/json"
+            };
+            options.body = JSON.stringify(body);
+        }
+
+        const response = await fetch(url, options);
+
+        if (response.ok) {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("text/plain")) {
+                const text = await response.text();
+                return { ok: true, data: text, isText: true };
+            } else {
+                const data = await response.json().catch(() => ({}));
+                return { ok: true, data: data, isText: false };
+            }
+        }
+
+        let error = "Request failed.";
+        try {
+            const data = await response.json();
+            if (data?.errors) {
+                error = Object.values(data.errors).flat().join(" ");
+            } else if (data?.title) {
+                error = data.title;
+            } else if (typeof data === "string") {
+                error = data;
+            }
+        } catch (_) {
+            const text = await response.text().catch(() => "");
+            if (text) error = text;
+        }
+        return { ok: false, message: error };
+    }
+
+    function loadModelToConverter(modelId) {
+        sessionStorage.setItem('loadModelId', modelId);
+        window.location.href = '/converter';
+    }
+
+    function renderModels(models) {
+        const container = document.getElementById("models-container");
+
+        if (!models || models.length === 0) {
+            container.innerHTML = `
+                    <div class="empty-state">
+                        <h2>No models found</h2>
+                        <p>Create your first model in the converter!</p>
+                    </div>
+                `;
+            return;
+        }
+
+        container.innerHTML = `
+                <div class="models-grid">
+                    ${models.map(model => `
+                        <div class="model-card">
+                            <h3>${escapeHtml(model.name || 'Unnamed Model')}</h3>
+                            <div class="model-id">ID: ${model.id}</div>
+                            <div class="properties-count">
+                                ${model.properties?.length || 0} propert${(model.properties?.length || 0) === 1 ? 'y' : 'ies'}
+                            </div>
+                            <div class="actions">
+                                <button onclick="loadModelToConverter('${model.id}')">Load in Converter</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    async function loadModels() {
+        try {
+            setStatus("Loading models...");
+            const result = await makeRequest("models", "GET");
+
+            if (result.ok && Array.isArray(result.data)) {
+                renderModels(result.data);
+                setStatus(`Loaded ${result.data.length} model(s).`, "success");
+            } else {
+                renderModels([]);
+                setStatus(result.message || "Failed to load models.", "error");
+            }
+        } catch (error) {
+            renderModels([]);
+            setStatus(`Error loading models: ${error.message}`, "error");
+        }
+    }
+
+    loadModels();
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const loadModelId = sessionStorage.getItem('loadModelId');
+        if (loadModelId) {
+            sessionStorage.removeItem('loadModelId');
+        }
+    });
+</script>
+</body>
+</html>
+

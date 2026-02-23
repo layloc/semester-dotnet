@@ -1,5 +1,4 @@
 using SEM.Domain.DTOs;
-using SEM.Entities;
 
 namespace SEM.Domain.Abstractions;
 
