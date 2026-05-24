@@ -19,14 +19,26 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
-builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo("D:\\keys"));
+var dataProtectionPath = builder.Configuration["DataProtection:KeysPath"] ?? "keys";
+try
+{
+    Directory.CreateDirectory(dataProtectionPath);
+}
+catch (UnauthorizedAccessException) when (builder.Environment.IsEnvironment("Docker"))
+{
+  dataProtectionPath = Path.Combine(Path.GetTempPath(), "sem-dataprotection-keys");
+  Directory.CreateDirectory(dataProtectionPath);
+}
+
+builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath));
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Database"))
         .UseSnakeCaseNamingConvention());
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = "localhost:6379";
-    options.InstanceName = "sem:";
+    options.Configuration = builder.Configuration["Redis:Configuration"] ?? "localhost:6379";
+    options.InstanceName = builder.Configuration["Redis:InstanceName"] ?? "sem:";
 });
 
 builder.Services.AddSession(options =>
@@ -59,20 +71,29 @@ builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
+if (app.Configuration.GetValue("ApplyMigrations", app.Environment.IsEnvironment("Docker")))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
+
+if (!app.Environment.IsEnvironment("Docker"))
+    app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();
 app.UseMiddleware<SessionAuthMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapGet("/", () => Results.Redirect("/login"));
 app.MapAuthEndpoints();
 app.MapConverterEndpoints();
 app.MapFallbackToFile("/login", "login.html");
 app.MapFallbackToFile("/converter", "converter.html").RequireAuthorization();
 app.MapFallbackToFile("/my-models", "my-models.html").RequireAuthorization();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
 {
     app.MapOpenApi();
     app.MapScalarApiReference();

@@ -1,32 +1,71 @@
 ﻿services:
   sem.api:
-    image: sem
-    container_name: sem.api
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
+    image: sem-api:latest
+    container_name: sem.api
     ports:
       - "8080:8080"
-      - "8081:8081"
-      - "5140:5140"
-      - "5141:5141"
-      - "7279:7279"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Database: Host=sem.db;Port=5432;Database=apidb;Username=postgres;Password=postgres
+      Redis__Configuration: sem.cache:6379
+      Redis__InstanceName: "sem:"
+      DataProtection__KeysPath: /app/keys
+      ApplyMigrations: "true"
+    depends_on:
+      sem.db:
+        condition: service_healthy
+      sem.cache:
+        condition: service_healthy
+    networks:
+      - sem-network
+    restart: unless-stopped
 
   sem.db:
-    image: postgres:17
+    image: postgres:17-alpine
     container_name: sem.db
     environment:
-      - POSTGRES_DB=apidb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      POSTGRES_DB: apidb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
-      - D:\DockerData\DockerDesktopWSL\dbcompose:/var/lib/postgresql/data
+      - sem-postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-      
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d apidb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - sem-network
+    restart: unless-stopped
+
   sem.cache:
-    image: redis:latest
-    restart: always
+    image: redis:7-alpine
+    container_name: sem.cache
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - sem-redis:/data
     ports:
       - "6379:6379"
-    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sem-network
+    restart: unless-stopped
+
+volumes:
+  sem-postgres:
+  sem-redis:
+
+networks:
+  sem-network:
+    driver: bridge

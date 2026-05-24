@@ -36,6 +36,13 @@
 
     <ItemGroup>
       <ProjectReference Include="..\SEM.Infrastructure\SEM.Infrastructure.csproj" />
+      <ProjectReference Include="..\SEM.Generators\SEM.Generators.csproj"
+                        OutputItemType="Analyzer"
+                        ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Schemas\**\*.sem.json" />
     </ItemGroup>
 
 </Project>

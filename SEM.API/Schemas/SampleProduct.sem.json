@@ -1,0 +1,17 @@
+{
+  "name": "SampleProduct",
+  "properties": [
+    {
+      "name": "Title",
+      "type": "string",
+      "isRequired": true,
+      "isReadonly": false
+    },
+    {
+      "name": "Price",
+      "type": "decimal",
+      "isRequired": true,
+      "isReadonly": false
+    }
+  ]
+}
